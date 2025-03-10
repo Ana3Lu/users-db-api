@@ -27,15 +27,30 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-json'
 	implementation 'org.postgresql:postgresql'
 	implementation "org.springframework.boot:spring-boot-starter-security"
 	implementation 'io.jsonwebtoken:jjwt:0.12.6'
+
+	implementation 'com.amazonaws:aws-lambda-java-core:1.2.1'
+	implementation 'com.amazonaws:aws-lambda-java-events:3.11.0'
+	implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot3:2.1.2'
+
+	runtimeOnly 'com.amazonaws:aws-lambda-java-runtime-interface-client:2.1.1'
+
 	compileOnly 'org.projectlombok:lombok'
 	testImplementation 'com.h2database:h2'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+bootJar {
+	mainClass = project.hasProperty("lambda") ?
+			"co.edu.unisabana.api.handlers.LambdaHandler" :
+			"co.edu.unisabana.api.ApiApplication"
+}
+
 
 tasks.named('test') {
 	useJUnitPlatform()
