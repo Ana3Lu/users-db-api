@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.3'
@@ -22,9 +24,8 @@ configurations {
 
 repositories {
 	mavenCentral()
-	gradlePluginPortal() // 🔹 Agregar esto para descargar plugins correctamente
+	gradlePluginPortal()
 }
-
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -43,7 +44,7 @@ dependencies {
 	implementation 'com.amazonaws:aws-lambda-java-runtime-interface-client:2.1.1'
 
 	compileOnly 'org.projectlombok:lombok'
-	//testImplementation 'com.h2database:h2'
+	testImplementation 'com.h2database:h2'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -55,24 +56,33 @@ bootJar {
 			"co.edu.unisabana.api.ApiApplication"
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
 	manifest {
-		attributes 'Main-Class': 'org.springframework.boot.loader.launch.JarLauncher'
+		attributes 'Main-Class': mainClass
 	}
 }
 
-shadowJar {
-	archiveFileName.set("api.jar")
+tasks.register('shadowJarLambda', ShadowJar) {
+	archiveBaseName.set("api-lambda")
+	archiveClassifier.set("")
+	archiveVersion.set("")
+	configurations = [project.configurations.runtimeClasspath]
+
+	from sourceSets.main.output
+
+	manifest {
+		attributes 'Main-Class': 'co.edu.unisabana.api.handlers.LambdaHandler'
+	}
 }
 
 tasks.register('buildZip', Zip) {
-	dependsOn shadowJar
+	dependsOn shadowJarLambda
 	from {
-		zipTree("build/libs/api.jar")
+		zipTree("build/libs/api-lambda.jar") // 🔹 Usa el nuevo JAR para Lambda
 	}
-	archiveFileName = "deployment.zip"
-	destinationDirectory = file("build/distributions")
+	archiveFileName.set("deployment.zip")
+	destinationDirectory.set(file("build/distributions"))
 }
-
 
 tasks.named('bootRun') {
 	doFirst {
@@ -83,8 +93,6 @@ tasks.named('bootRun') {
 bootRun {
 	mainClass = "co.edu.unisabana.api.ApiApplication"
 }
-
-
 
 tasks.named('test') {
 	useJUnitPlatform()
