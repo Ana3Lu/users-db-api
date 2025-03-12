@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.3'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'co.edu.unisabana'
@@ -21,7 +22,9 @@ configurations {
 
 repositories {
 	mavenCentral()
+	gradlePluginPortal() // 🔹 Agregar esto para descargar plugins correctamente
 }
+
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -35,11 +38,12 @@ dependencies {
 	implementation 'com.amazonaws:aws-lambda-java-core:1.2.1'
 	implementation 'com.amazonaws:aws-lambda-java-events:3.11.0'
 	implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot3:2.1.2'
+	implementation 'com.amazonaws.serverless:aws-serverless-java-container-core:2.1.2'
 
-	runtimeOnly 'com.amazonaws:aws-lambda-java-runtime-interface-client:2.1.1'
+	implementation 'com.amazonaws:aws-lambda-java-runtime-interface-client:2.1.1'
 
 	compileOnly 'org.projectlombok:lombok'
-	testImplementation 'com.h2database:h2'
+	//testImplementation 'com.h2database:h2'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -49,7 +53,37 @@ bootJar {
 	mainClass = project.hasProperty("lambda") ?
 			"co.edu.unisabana.api.handlers.LambdaHandler" :
 			"co.edu.unisabana.api.ApiApplication"
+
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	manifest {
+		attributes 'Main-Class': 'org.springframework.boot.loader.launch.JarLauncher'
+	}
 }
+
+shadowJar {
+	archiveFileName.set("api.jar")
+}
+
+tasks.register('buildZip', Zip) {
+	dependsOn shadowJar
+	from {
+		zipTree("build/libs/api.jar")
+	}
+	archiveFileName = "deployment.zip"
+	destinationDirectory = file("build/distributions")
+}
+
+
+tasks.named('bootRun') {
+	doFirst {
+		mainClass.set("co.edu.unisabana.api.ApiApplication")
+	}
+}
+
+bootRun {
+	mainClass = "co.edu.unisabana.api.ApiApplication"
+}
+
 
 
 tasks.named('test') {

@@ -1,0 +1,24 @@
+service: api-serverless
+
+provider:
+  name: aws
+  runtime: java17
+  memorySize: 1024
+  timeout: 28
+  region: us-east-1
+  environment:
+    SPRING_DATASOURCE_URL: ${env:SPRING_DATASOURCE_URL}
+    SPRING_DATASOURCE_USERNAME: ${env:SPRING_DATASOURCE_USERNAME}
+    SPRING_DATASOURCE_PASSWORD: ${env:SPRING_DATASOURCE_PASSWORD}
+    SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+functions:
+  api:
+    handler: co.edu.unisabana.api.handlers.LambdaHandler::handleRequest
+    package:
+      artifact: s3://bucket-api-users/api.jar
+    events:
+      - http:
+          path: /{proxy+}
+          method: any
+          cors: true
