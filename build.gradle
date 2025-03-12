@@ -78,7 +78,7 @@ tasks.register('shadowJarLambda', ShadowJar) {
 tasks.register('buildZip', Zip) {
 	dependsOn shadowJarLambda
 	from {
-		zipTree("build/libs/api-lambda.jar") // 🔹 Usa el nuevo JAR para Lambda
+		zipTree("build/libs/api-lambda.jar")
 	}
 	archiveFileName.set("deployment.zip")
 	destinationDirectory.set(file("build/distributions"))
