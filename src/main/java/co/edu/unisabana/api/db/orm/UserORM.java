@@ -19,7 +19,7 @@ public class UserORM {
     @Column
     private String password;
 
-    @Column
+    @Column(name = "full_name")
     private String fullName;
 
     @ManyToOne
