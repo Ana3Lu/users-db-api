@@ -10,6 +10,8 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import javax.sql.DataSource;
+import java.io.InputStream;
+import java.util.Properties;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "co.edu.unisabana.api.db.jpa")
@@ -17,9 +19,21 @@ import javax.sql.DataSource;
 public class ApiApplication {
 
 	public static void main(String[] args) {
-		if (System.getProperty("spring.profiles.active") == null) {
-			System.setProperty("spring.profiles.active", "dev");
+		// Leer el perfil desde el Manifest si existe
+		String profile = System.getProperty("spring.profiles.active");
+		if (profile == null) {
+			try (InputStream manifestStream = ApiApplication.class.getClassLoader().getResourceAsStream("META-INF/MANIFEST.MF")) {
+				if (manifestStream != null) {
+					Properties properties = new Properties();
+					properties.load(manifestStream);
+					profile = properties.getProperty("Spring-Boot-Profile", "dev");
+					System.setProperty("spring.profiles.active", profile);
+				}
+			} catch (Exception ignored) {
+			}
 		}
+
+		System.out.println("🔹 Iniciando API con perfil: " + System.getProperty("spring.profiles.active"));
 		SpringApplication.run(ApiApplication.class, args);
 	}
 

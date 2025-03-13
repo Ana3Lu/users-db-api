@@ -58,7 +58,8 @@ bootJar {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 	manifest {
-		attributes 'Main-Class': mainClass
+		attributes 'Main-Class': mainClass,
+				'Spring-Boot-Profile': project.hasProperty("lambda") ? "aws" : "dev"
 	}
 }
 
@@ -71,7 +72,8 @@ tasks.register('shadowJarLambda', ShadowJar) {
 	from sourceSets.main.output
 
 	manifest {
-		attributes 'Main-Class': 'co.edu.unisabana.api.handlers.LambdaHandler'
+		attributes 'Main-Class': 'co.edu.unisabana.api.handlers.LambdaHandler',
+				'Spring-Boot-Profile': "aws"
 	}
 }
 
@@ -98,3 +100,4 @@ bootRun {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
